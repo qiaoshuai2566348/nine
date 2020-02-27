@@ -2,6 +2,7 @@ var crypto = require('../utils/crypto');
 var express = require('express');
 var db = require('../utils/db');
 var http = require("../utils/http");
+var consts = require('../utils/consts');
 
 var app = express();
 var hallAddr = "";
@@ -17,11 +18,8 @@ exports.start = function(cfg){
 	config = cfg;
 	hallAddr = config.HALL_IP  + ":" + config.HALL_CLIENT_PORT;
 	app.listen(config.CLIENT_PORT);
-	console.log("account server is listening on " + config.CLIENT_PORT);
+//	console.log("account server is listening on " + config.CLIENT_PORT);
 }
-
-
-
 
 
 //设置跨域访问
@@ -77,11 +75,13 @@ app.get('/get_serverinfo',function(req,res){
 		hall:hallAddr,
 		appweb:config.APP_WEB,
 	}
+	console.log(ret);
 	send(res,ret);
 });
 
 app.get('/guest',function(req,res){
-	var account = "guest_" + req.query.account;
+
+	var account = req.query.account;
 	var sign = crypto.md5(account + req.ip + config.ACCOUNT_PRI_KEY);
 	var ret = {
 		errcode:0,
@@ -153,6 +153,7 @@ function get_state_info(access_token,openid,callback){
 function create_user(account,name,sex,headimgurl,callback){
 	var coins = 1000;
 	var gems = 21;
+	
 	db.is_user_exist(account,function(ret){
 		if(!ret){
 			db.create_user(account,name,coins,gems,sex,headimgurl,function(ret){
@@ -172,7 +173,7 @@ app.get('/wechat_auth',function(req,res){
 	if(code == null || code == "" || os == null || os == ""){
 		return;
 	}
-	console.log(os);
+	// console.log(os);
 	get_access_token(code,os,function(suc,data){
 		if(suc){
 			var access_token = data.access_token;

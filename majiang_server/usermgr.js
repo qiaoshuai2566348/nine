@@ -28,13 +28,14 @@ exports.getOnlineCount = function(){
 }
 
 exports.sendMsg = function(userId,event,msgdata){
-    console.log(event);
     var userInfo = userList[userId];
     if(userInfo == null){
+        console.log('userInfo is null,userId:'+userId);
         return;
     }
     var socket = userInfo;
     if(socket == null){
+        console.log('socket is null,userId:'+userId);
         return;
     }
 

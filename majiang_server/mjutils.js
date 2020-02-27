@@ -1,9 +1,21 @@
-function checkTingPai(seatData,begin,end){
+var consts = require('../utils/consts')
+var dgzCanNotHu = [0,1,10,11,18,19];
+
+function checkTingPai(seatData,begin,end,gameType){
 	for(var i = begin; i < end; ++i){
 		//如果这牌已经在和了，就不用检查了
 		if(seatData.tingMap[i] != null){
 			continue;
 		}
+
+		//打锅子1，2不能听胡
+		if(gameType == consts.gameType.mj_dgz){
+			for(let i =0;i< dgzCanNotHu.length;i++){
+				if(i == dgzCanNotHu[i])
+					continue;
+			}
+		}
+
 		//将牌加入到计数中
 		var old = seatData.countMap[i];
 		if(old == null){

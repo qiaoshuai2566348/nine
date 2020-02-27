@@ -1,5 +1,6 @@
 var http_service = require("./http_service");
 var socket_service = require("./socket_service");
+var roommgr = require('./roommgr');
 
 //从配置文件获取服务器信息
 var configs = require(process.argv[2]);
@@ -14,4 +15,4 @@ http_service.start(config);
 //开启外网SOCKET服务
 socket_service.start(config);
 
-//require('./gamemgr');
+roommgr.init();

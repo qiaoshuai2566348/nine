@@ -27,7 +27,7 @@ String.prototype.format = function(args) {
 };
 
 exports.post = function (host,port,path,data,callback) {
-	
+	console.log("post:"+host +" path:"+path);
 	var content = qs.stringify(data);  
 	var options = {  
 		hostname: host,  
@@ -37,8 +37,8 @@ exports.post = function (host,port,path,data,callback) {
 	};  
 	  
 	var req = http.request(options, function (res) {  
-		console.log('STATUS: ' + res.statusCode);  
-		console.log('HEADERS: ' + JSON.stringify(res.headers));  
+		// console.log('STATUS: ' + res.statusCode);  
+		// console.log('HEADERS: ' + JSON.stringify(res.headers));  
 		res.setEncoding('utf8');  
 		res.on('data', function (chunk) {  
 			//console.log('BODY: ' + chunk);
@@ -54,6 +54,7 @@ exports.post = function (host,port,path,data,callback) {
 };
 
 exports.get2 = function (url,data,callback,safe) {
+	console.log("get2:"+host+" url:"+url);
 	var content = qs.stringify(data);
 	var url = url + '?' + content;
 	var proto = http;
@@ -80,6 +81,7 @@ exports.get2 = function (url,data,callback,safe) {
 };
 
 exports.get = function (host,port,path,data,callback,safe) {
+	//console.log("get:"+host+" path:"+path);
 	var content = qs.stringify(data);  
 	var options = {  
 		hostname: host,  
@@ -113,6 +115,8 @@ exports.get = function (host,port,path,data,callback,safe) {
 };
 
 exports.send = function(res,errcode,errmsg,data){
+	//console.log("send:"+res);
+
 	if(data == null){
 		data = {};
 	}
