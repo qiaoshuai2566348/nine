@@ -1,0 +1,46 @@
+
+//GameCMD.js
+
+var GameCMD = {
+
+    PUBLIC_MSG: 1000,
+    PUBLIC_LOGIN_RESULT: 1001,
+    PUBLIC_LOGIN_FINISHED: 1002,
+    PUBLIC_EXIT_RESULT: 1003,
+    PUBLIC_EXIT_NOTIFY_PUSH: 1004,
+    PUBLIC_DISPRESS_PUSH: 1005,
+    PUBLIC_DIS_CONNECT: 1006,
+    PUBLIC_NEW_USER_COMES_PUSH: 1007,
+    PUBLIC_USER_STATE_PUSH: 1008,
+    PUBLIC_USER_READY_PUSH: 1009,
+    PUBLIC_GAME_HOLDS_PUSH: 1010,
+    PUBLIC_GAME_BEGIN_PUSH: 1011,
+    PUBLIC_GAME_PLAYING_PUSH: 1012,
+    PUBLIC_DISSOLVE_NOTICE_PUSH: 1013,
+    PUBLIC_DISSOLVE_CANCEL_PUSH: 1014,
+    PUBLIC_VOICE_MSG_PUSH: 1015,
+
+    MJ_DGZ_MSG: 2000,
+    MJ_DGZ_SYNC_PUSH: 2001,             //同步游戏数据
+    MJ_DGZ_DING_QUE_PUSH: 2002,         //定缺广播
+    MJ_DGZ_HUAN_PAI_PUSH: 2003,         //换牌广播
+    MJ_DGZ_HAN_GANG_NOTIFY_PUSH: 2004,  //汗杠广播
+    MJ_DGZ_ACTION_PUSH: 2005,           //动作广播
+    MJ_DGZ_CHU_PAI_PUSH: 2006,          //出牌广播
+    MJ_DGZ_GAME_NUM_PUSH: 2007,         //局数广播
+    MJ_DGZ_GAME_OVER_PUSH: 2008,        //结束广播
+    MJ_DGZ_MJ_COUNT_PUSH: 2009,         //麻将数量广播
+    MJ_DGZ_HU_PUSH: 2010,               //胡拍广播
+    MJ_DGZ_CHU_PAI_NOTIFY_PUSH: 2011,   //出牌广播
+    MJ_DGZ_MO_PAI_PUSH: 2012,           //摸牌广播
+    MJ_DGZ_GUO_NOTIFY_PUSH: 2013,       //过牌广播
+    MJ_DGZ_GUO_RESULT: 2014,            //过牌结果
+    MJ_DGZ_GUO_HU_PUSH: 2015,           //过胡广播
+    MJ_DGZ_HUAN_PAI_OVER_PUSH: 2016,    //换牌结束广播
+    MJ_DGZ_PENG_NOTIFY_PUSH: 2017,      //碰广播
+    MJ_DGZ_GANG_NOTIFY_PUSH: 2018,      //杠广播
+
+    PK_ZJH_MSG: 3000,
+}
+
+module.exports = GameCMD;

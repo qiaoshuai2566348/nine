@@ -3,15 +3,16 @@ var db = require('../utils/db');
 var tokenMgr = require('./tokenmgr');
 var roomMgr = require('./roommgr');
 var userMgr = require('./usermgr');
-var errorCode = require('../utils/errorCode')
-var consts = require('../utils/consts')
+var errorCode = require('../utils/errorCode');
+var consts = require('../utils/consts');
+var GameCMD = require('../utils/GameCMD');
 var io = null;
 
 exports.start = function (config, mgr) {
 	io = require('socket.io')(config.CLIENT_PORT);
 
 	io.sockets.on('connection', function (socket) {
-		socket.on('login', function (data) {
+		socket.on('login', function (data) {//进入房间
 			data = JSON.parse(data);
 			if (socket.userId != null) {
 				//已经登陆过的就忽略
@@ -22,10 +23,18 @@ exports.start = function (config, mgr) {
 			var time = data.time;
 			var sign = data.sign;
 
+
 			//检查参数合法性
 			if (token == null || roomId == null || sign == null || time == null) {
 				console.log(errorCode.INVALID_PARAMETERS);
-				socket.emit('login_result', { errcode: errorCode.INVALID_PARAMETERS, errmsg: "invalid parameters" });
+				socket.emit(GameCMD.PUBLIC_MSG,
+					{
+						errcode: errorCode.INVALID_PARAMETERS,
+						data: {
+							MSG_ID: GameCMD.PUBLIC_LOGIN_RESULT,
+							errmsg: "invalid parameters"
+						}
+					});
 				return;
 			}
 
@@ -33,14 +42,24 @@ exports.start = function (config, mgr) {
 			var md5 = crypto.md5(roomId + token + time + config.ROOM_PRI_KEY);
 			if (md5 != sign) {
 				console.log(errorCode.INVALID_SING);
-				socket.emit('login_result', { errcode: errorCode.INVALID_SING, errmsg: "login failed. invalid sign!" });
+				socket.emit(GameCMD.PUBLIC_MSG, {
+					errcode: errorCode.INVALID_SING,
+					data: {
+						MSG_ID: GameCMD.PUBLIC_LOGIN_RESULT, errmsg: "login failed. invalid sign!"
+					}
+				});
 				return;
 			}
 
 			//检查token是否有效
 			if (tokenMgr.isTokenValid(token) == false) {
 				console.log(errorCode.TOKEN_OUT_OF_TIME);
-				socket.emit('login_result', { errcode: errorCode.TOKEN_OUT_OF_TIME, errmsg: "token out of time." });
+				socket.emit(GameCMD.PUBLIC_MSG, {
+					errcode: errorCode.TOKEN_OUT_OF_TIME,
+					data: {
+						MSG_ID: GameCMD.PUBLIC_LOGIN_RESULT, errmsg: "token out of time."
+					}
+				});
 				return;
 			}
 
@@ -86,15 +105,24 @@ exports.start = function (config, mgr) {
 				errcode: 0,
 				errmsg: "ok",
 				data: {
+					MSG_ID: GameCMD.PUBLIC_LOGIN_RESULT,
 					roomid: roomInfo.id,
 					conf: roomInfo.conf,
 					seats: seats
 				}
 			};
-			socket.emit('login_result', ret);
+			socket.emit(GameCMD.PUBLIC_MSG, ret);
 
 			//通知其它客户端
-			userMgr.broacastInRoom('new_user_comes_push', userData, userId);
+			// userMgr.broacastInRoom('new_user_comes_push', userData, userId);
+			var data = {
+				errcode: 0,
+				data: {
+					MSG_ID: GameCMD.PUBLIC_NEW_USER_COMES_PUSH,
+					userData: userData,
+				}
+			}
+			userMgr.broacastInRoom(GameCMD.PUBLIC_MSG, data, userId);
 
 			// console.log(socket);
 			// console.log(roomInfo.gameMgr);
@@ -103,16 +131,29 @@ exports.start = function (config, mgr) {
 			//玩家上线，强制设置为TRUE
 			socket.gameMgr.setReady(userId);
 
-			socket.emit('login_finished');
+			var data = {
+				errcode: 0,
+				data: {
+					MSG_ID: GameCMD.PUBLIC_LOGIN_FINISHED,
+					gameType: roomInfo.conf.type,
+				}
+			}
+
+			socket.emit(GameCMD.PUBLIC_MSG, data);
 
 			if (roomInfo.dr != null) {
 				var dr = roomInfo.dr;
 				var ramaingTime = (dr.endTime - Date.now()) / 1000;
 				var data = {
-					time: ramaingTime,
-					states: dr.states
+					errcode: 0,
+					data: {
+						MSG_ID: GameCMD.PUBLIC_DISSOLVE_NOTICE_PUSH,
+						time: ramaingTime,
+						states: dr.states
+					}
 				}
-				userMgr.sendMsg(userId, 'dissolve_notice_push', data);
+				// userMgr.sendMsg(userId, 'dissolve_notice_push', data);
+				userMgr.sendMsg(userId, GameCMD.PUBLIC_MSG, data);
 			}
 		});
 
@@ -122,7 +163,15 @@ exports.start = function (config, mgr) {
 				return;
 			}
 			socket.gameMgr.setReady(userId);
-			userMgr.broacastInRoom('user_ready_push', { userid: userId, ready: true }, userId, true);
+			var data = {
+				errcode: 0,
+				data: {
+					MSG_ID: GameCMD.PUBLIC_USER_READY_PUSH,
+					userId: userId,
+					ready: true,
+				}
+			}
+			userMgr.broacastInRoom(GameCMD.PUBLIC_MSG, data, userId, true);
 		});
 
 		//换牌
@@ -274,9 +323,15 @@ exports.start = function (config, mgr) {
 				return;
 			}
 
-
+			var data = {
+				errcode: 0,
+				data: {
+					MSG_ID: GameCMD.PUBLIC_EXIT_NOTIFY_PUSH,
+					userId: userId,
+				}
+			}
 			//通知其它玩家，有人退出了房间
-			userMgr.broacastInRoom('exit_notify_push', userId, userId, false);
+			userMgr.broacastInRoom(GameCMD.PUBLIC_MSG, data, userId, false);
 
 			roomMgr.exitRoom(userId);
 			userMgr.del(userId);
@@ -314,10 +369,14 @@ exports.start = function (config, mgr) {
 
 			var room = roomMgr.getRoom(roomId);
 			data = {
-				clubId: room.conf.clubId != null ? room.conf.clubId : 0,
+				errcode: 0,
+				data: {
+					MSG_ID: GameCMD.PUBLIC_DISPRESS_PUSH,
+					clubId: room.conf.clubId != null ? room.conf.clubId : 0,
+				}
 			}
 			console.log(data);
-			userMgr.broacastInRoom('dispress_push', data, userId, true);
+			userMgr.broacastInRoom(GameCMD.PUBLIC_MSG, data, userId, true);
 			userMgr.kickAllInRoom(roomId);
 			roomMgr.destroy(roomId);
 			socket.disconnect();
@@ -349,11 +408,16 @@ exports.start = function (config, mgr) {
 				var dr = ret.dr;
 				var ramaingTime = (dr.endTime - Date.now()) / 1000;
 				var data = {
-					time: ramaingTime,
-					states: dr.states
+					errcode: 0,
+					data: {
+						MSG_ID: GameCMD.PUBLIC_DISSOLVE_NOTICE_PUSH,
+						time: ramaingTime,
+						states: dr.states
+					}
 				}
 				console.log(5);
-				userMgr.broacastInRoom('dissolve_notice_push', data, userId, true);
+				// userMgr.broacastInRoom('dissolve_notice_push', data, userId, true);
+				userMgr.broacastInRoom(GameCMD.PUBLIC_MSG, data, userId, true);
 			}
 			console.log(6);
 		});
@@ -375,10 +439,14 @@ exports.start = function (config, mgr) {
 				var dr = ret.dr;
 				var ramaingTime = (dr.endTime - Date.now()) / 1000;
 				var data = {
-					time: ramaingTime,
-					states: dr.states
+					errcode: 0,
+					data: {
+						MSG_ID: GameCMD.PUBLIC_DISSOLVE_NOTICE_PUSH,
+						time: ramaingTime,
+						states: dr.states
+					}
 				}
-				userMgr.broacastInRoom('dissolve_notice_push', data, userId, true);
+				userMgr.broacastInRoom(GameCMD.PUBLIC_MSG, data, userId, true);
 
 				var doAllAgree = true;
 				for (var i = 0; i < dr.states.length; ++i) {
@@ -408,7 +476,14 @@ exports.start = function (config, mgr) {
 
 			var ret = socket.gameMgr.dissolveAgree(roomId, userId, false);
 			if (ret != null) {
-				userMgr.broacastInRoom('dissolve_cancel_push', {}, userId, true);
+				// userMgr.broacastInRoom('dissolve_cancel_push', {}, userId, true);
+				var data = {
+					errcode: 0,
+					data: {
+						MSG_ID: GameCMD.PUBLIC_DISSOLVE_CANCEL_PUSH
+					}
+				}
+				userMgr.broacastInRoom(GameCMD.PUBLIC_MSG, data, userId, true);
 			}
 		});
 
@@ -419,12 +494,20 @@ exports.start = function (config, mgr) {
 				return;
 			}
 			var data = {
-				userid: userId,
-				online: false
+				errcode: 0,
+				data: {
+					errcode: 0,
+					data: {
+						MSG_ID: GameCMD.PUBLIC_USER_STATE_PUSH,
+						userid: userId,
+						online: false
+					}
+				}
 			};
 
 			//通知房间内其它玩家
-			userMgr.broacastInRoom('user_state_push', data, userId);
+			// userMgr.broacastInRoom('user_state_push', data, userId);
+			userMgr.broacastInRoom(GameCMD.PUBLIC_MSG, data, userId);
 
 			//清除玩家的在线信息
 			userMgr.del(userId);
@@ -439,6 +522,11 @@ exports.start = function (config, mgr) {
 			//console.log('game_ping');
 			socket.emit('game_pong');
 		});
+
+		//socket.on(GameCMD.Exit)
+
+		//pk_zjh
+		// socket.on('')
 	});
 
 	console.log("game server is listening on " + config.CLIENT_PORT);

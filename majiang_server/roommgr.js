@@ -188,6 +188,7 @@ exports.createRoom = function (creator, roomConf, gems, ip, port, callback) {
 
 					if (roomInfo.conf.type == consts.gameType.pk_zjh) {//
 
+						roomInfo.gameMgr = require('./gamemgr_pk_zjh');
 					} else if (roomInfo.conf.type == consts.gameType.pk_ddz) {
 
 					} else if (roomInfo.conf.type == consts.gameType.pk_zlm) {

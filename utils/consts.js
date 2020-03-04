@@ -2,6 +2,10 @@ var consts = {
 
     GET_CLUB_ROOMS_BY_GAME_ID: 1001,
 
+    //扎金花
+    ZJH_MSG: 2000,
+    ZJH_OPT: 2001,//用户操作
+
     /**
      * 游戏类型
      */

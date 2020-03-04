@@ -401,7 +401,8 @@ exports.start = function (config) {
                     socket.emit(consts.GET_CLUB_ROOMS_BY_GAME_ID, data);
                 }
             })
-        })
+        });
+
         socket.on('get_club_member_list', function (data) {
             console.log('get_club_member_list');
             data = JSON.parse(data);

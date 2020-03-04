@@ -128,8 +128,9 @@ app.get('/enter_room', function (req, res) {
 			}
 			return;
 		}
-
+		console.log('enterRoom1');
 		var token = tokenMgr.createToken(userId, 5000);
+		console.log()
 		http.send(res, 0, "ok", { token: token });
 	});
 });
